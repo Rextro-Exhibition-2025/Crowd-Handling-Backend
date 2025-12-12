@@ -1,0 +1,428 @@
+openapi: 3.0.3
+info:
+  title: Parking Management API
+  description: API for managing parking slots and availability in crowd handling system
+  version: 1.0.0
+  contact:
+    name: API Support
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server (update with actual URL)
+
+tags:
+  - name: Parking
+    description: Parking management operations
+  - name: Health
+    description: Health check endpoints
+
+paths:
+  /:
+    get:
+      tags:
+        - Health
+      summary: API Information
+      description: Returns basic information about the API and available endpoints
+      operationId: getApiInfo
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Parking Management API
+                  version:
+                    type: string
+                    example: 1.0.0
+                  endpoints:
+                    type: object
+                    properties:
+                      getAllParkings:
+                        type: string
+                        example: GET /api/parkings
+                      getParkingById:
+                        type: string
+                        example: GET /api/parkings/:id
+                      createParking:
+                        type: string
+                        example: POST /api/parkings
+                      updateParking:
+                        type: string
+                        example: PUT /api/parkings/:id
+                      deleteParking:
+                        type: string
+                        example: DELETE /api/parkings/:id
+                      updateAvailability:
+                        type: string
+                        example: PATCH /api/parkings/:id/availability
+
+  /api/parkings:
+    get:
+      tags:
+        - Parking
+      summary: Get all parkings
+      description: Retrieve a list of all parking locations with their details
+      operationId: getAllParkings
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 5
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Parking"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    post:
+      tags:
+        - Parking
+      summary: Create new parking
+      description: Create a new parking location with specified details
+      operationId: createParking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParkingInput"
+            examples:
+              example1:
+                summary: Sample parking creation
+                value:
+                  parkingName: "Main Street Parking"
+                  totalSlots: 100
+                  availableSlots: 100
+      responses:
+        "201":
+          description: Parking created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Parking created successfully
+                  data:
+                    $ref: "#/components/schemas/Parking"
+        "400":
+          description: Bad request - validation error or duplicate parking name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                validationError:
+                  summary: Missing required fields
+                  value:
+                    success: false
+                    message: Please provide parkingName, totalSlots, and availableSlots
+                duplicateError:
+                  summary: Duplicate parking name
+                  value:
+                    success: false
+                    message: Parking with this name already exists
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/parkings/{id}:
+    get:
+      tags:
+        - Parking
+      summary: Get parking by ID
+      description: Retrieve details of a specific parking location by its ID
+      operationId: getParkingById
+      parameters:
+        - $ref: "#/components/parameters/ParkingId"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Parking"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    put:
+      tags:
+        - Parking
+      summary: Update parking
+      description: Update all details of a specific parking location
+      operationId: updateParking
+      parameters:
+        - $ref: "#/components/parameters/ParkingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParkingInput"
+            examples:
+              example1:
+                summary: Update parking details
+                value:
+                  parkingName: "Main Street Parking - Updated"
+                  totalSlots: 150
+                  availableSlots: 120
+      responses:
+        "200":
+          description: Parking updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Parking updated successfully
+                  data:
+                    $ref: "#/components/schemas/Parking"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    delete:
+      tags:
+        - Parking
+      summary: Delete parking
+      description: Delete a specific parking location by its ID
+      operationId: deleteParking
+      parameters:
+        - $ref: "#/components/parameters/ParkingId"
+      responses:
+        "200":
+          description: Parking deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Parking deleted successfully
+                  data:
+                    type: object
+                    example: {}
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/parkings/{id}/availability:
+    patch:
+      tags:
+        - Parking
+      summary: Update parking availability
+      description: Update the available slots and/or availability status of a parking location
+      operationId: updateAvailability
+      parameters:
+        - $ref: "#/components/parameters/ParkingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailabilityUpdate"
+            examples:
+              updateSlots:
+                summary: Update available slots
+                value:
+                  availableSlots: 75
+              updateStatus:
+                summary: Update availability status
+                value:
+                  isAvailable: false
+              updateBoth:
+                summary: Update both slots and status
+                value:
+                  availableSlots: 50
+                  isAvailable: true
+      responses:
+        "200":
+          description: Availability updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Availability updated successfully
+                  data:
+                    $ref: "#/components/schemas/Parking"
+        "400":
+          description: Bad request - available slots exceed total slots
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Available slots cannot exceed total slots
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+components:
+  schemas:
+    Parking:
+      type: object
+      required:
+        - parkingName
+        - totalSlots
+        - availableSlots
+      properties:
+        _id:
+          type: string
+          description: MongoDB Object ID
+          example: "507f1f77bcf86cd799439011"
+        parkingName:
+          type: string
+          description: Unique name of the parking location
+          example: "Main Street Parking"
+        totalSlots:
+          type: integer
+          minimum: 0
+          description: Total number of parking slots
+          example: 100
+        availableSlots:
+          type: integer
+          minimum: 0
+          description: Number of available parking slots
+          example: 75
+        isAvailable:
+          type: boolean
+          description: Indicates if the parking has available slots
+          default: true
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the parking was created
+          example: "2025-12-12T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the parking was last updated
+          example: "2025-12-12T12:45:00.000Z"
+
+    ParkingInput:
+      type: object
+      required:
+        - parkingName
+        - totalSlots
+        - availableSlots
+      properties:
+        parkingName:
+          type: string
+          description: Unique name of the parking location
+          example: "Main Street Parking"
+        totalSlots:
+          type: integer
+          minimum: 0
+          description: Total number of parking slots
+          example: 100
+        availableSlots:
+          type: integer
+          minimum: 0
+          description: Number of available parking slots (must not exceed totalSlots)
+          example: 75
+
+    AvailabilityUpdate:
+      type: object
+      properties:
+        availableSlots:
+          type: integer
+          minimum: 0
+          description: Updated number of available slots (must not exceed totalSlots)
+          example: 50
+        isAvailable:
+          type: boolean
+          description: Updated availability status
+          example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: Error message
+          example: "Server Error"
+        error:
+          type: string
+          description: Detailed error information
+          example: "Database connection failed"
+
+  parameters:
+    ParkingId:
+      name: id
+      in: path
+      description: MongoDB Object ID of the parking location
+      required: true
+      schema:
+        type: string
+        example: "507f1f77bcf86cd799439011"
+
+  responses:
+    NotFound:
+      description: Parking not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: Parking not found
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
