@@ -3,17 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Car, Edit2, Trash2, MapPin } from "lucide-react";
+import { Car, Edit2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ParkingCardProps {
   parking: Parking;
   onEdit: (parking: Parking) => void;
-  onDelete: (id: string) => void;
   index: number;
 }
 
-export function ParkingCard({ parking, onEdit, onDelete, index }: ParkingCardProps) {
+export function ParkingCard({ parking, onEdit, index }: ParkingCardProps) {
   const occupancyPercent = ((parking.totalSlots - parking.availableSlots) / parking.totalSlots) * 100;
   
   const getStatusColor = () => {
@@ -123,14 +122,6 @@ export function ParkingCard({ parking, onEdit, onDelete, index }: ParkingCardPro
           >
             <Edit2 className="h-4 w-4" />
             Edit
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-            onClick={() => onDelete(parking._id)}
-          >
-            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>

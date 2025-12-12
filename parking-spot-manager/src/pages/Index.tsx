@@ -3,29 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ParkingCard } from "@/components/parking/ParkingCard";
 import { ParkingFormDialog } from "@/components/parking/ParkingFormDialog";
-import { DeleteConfirmDialog } from "@/components/parking/DeleteConfirmDialog";
 import { ParkingStats } from "@/components/parking/ParkingStats";
 import { Parking } from "@/types/parking";
 import {
   useParkings,
-  useCreateParking,
   useUpdateParking,
-  useDeleteParking,
   useUpdateAvailability,
 } from "@/hooks/useParkings";
-import { Plus, Search, ParkingCircle, RefreshCw, Loader2 } from "lucide-react";
+import { Search, ParkingCircle, RefreshCw, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingParking, setEditingParking] = useState<Parking | null>(null);
-  const [deletingParking, setDeletingParking] = useState<Parking | null>(null);
 
   const { data: parkings, isLoading, refetch, isRefetching } = useParkings();
-  const createParking = useCreateParking();
   const updateParking = useUpdateParking();
-  const deleteParking = useDeleteParking();
   const updateAvailability = useUpdateAvailability();
 
   const filteredParkings = parkings?.filter((p) =>
@@ -35,10 +29,6 @@ const Index = () => {
   const handleEdit = (parking: Parking) => {
     setEditingParking(parking);
     setIsFormOpen(true);
-  };
-
-  const handleDelete = (parking: Parking) => {
-    setDeletingParking(parking);
   };
 
   const handleFormSubmit = async (values: {
@@ -61,27 +51,9 @@ const Index = () => {
           data: { isAvailable: values.isAvailable },
         });
       }
-    } else {
-      await createParking.mutateAsync({
-        parkingName: values.parkingName,
-        totalSlots: values.totalSlots,
-        availableSlots: values.availableSlots,
-      });
     }
     setIsFormOpen(false);
     setEditingParking(null);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (deletingParking) {
-      await deleteParking.mutateAsync(deletingParking._id);
-      setDeletingParking(null);
-    }
-  };
-
-  const handleOpenCreate = () => {
-    setEditingParking(null);
-    setIsFormOpen(true);
   };
 
   return (
@@ -113,10 +85,6 @@ const Index = () => {
                 ) : (
                   <RefreshCw className="h-4 w-4" />
                 )}
-              </Button>
-              <Button onClick={handleOpenCreate} className="gap-2">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Parking</span>
               </Button>
             </div>
           </div>
@@ -152,7 +120,6 @@ const Index = () => {
                 key={parking._id}
                 parking={parking}
                 onEdit={handleEdit}
-                onDelete={() => handleDelete(parking)}
                 index={index}
               />
             ))}
@@ -168,14 +135,8 @@ const Index = () => {
             <p className="text-muted-foreground text-sm mb-4">
               {searchQuery
                 ? "Try adjusting your search query"
-                : "Get started by adding your first parking location"}
+                : "No parking locations available"}
             </p>
-            {!searchQuery && (
-              <Button onClick={handleOpenCreate} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Parking
-              </Button>
-            )}
           </div>
         )}
       </main>
@@ -189,15 +150,7 @@ const Index = () => {
         }}
         parking={editingParking}
         onSubmit={handleFormSubmit}
-        isLoading={createParking.isPending || updateParking.isPending || updateAvailability.isPending}
-      />
-
-      <DeleteConfirmDialog
-        open={!!deletingParking}
-        onOpenChange={(open) => !open && setDeletingParking(null)}
-        onConfirm={handleDeleteConfirm}
-        isLoading={deleteParking.isPending}
-        parkingName={deletingParking?.parkingName}
+        isLoading={updateParking.isPending || updateAvailability.isPending}
       />
     </div>
   );
