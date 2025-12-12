@@ -17,12 +17,6 @@ const parkingSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Please provide available slots"],
       min: [0, "Available slots cannot be negative"],
-      validate: {
-        validator: function (value) {
-          return value <= this.totalSlots;
-        },
-        message: "Available slots cannot exceed total slots",
-      },
     },
     isAvailable: {
       type: Boolean,
@@ -36,7 +30,40 @@ const parkingSchema = new mongoose.Schema(
 
 // Update isAvailable based on availableSlots
 parkingSchema.pre("save", function (next) {
+  if (this.availableSlots > this.totalSlots) {
+    return next(new Error("Available slots cannot exceed total slots"));
+  }
   this.isAvailable = this.availableSlots > 0;
+  next();
+});
+
+// Validate on findOneAndUpdate
+parkingSchema.pre("findOneAndUpdate", async function (next) {
+  const update = this.getUpdate();
+  const docToUpdate = await this.model.findOne(this.getQuery());
+
+  if (!docToUpdate) {
+    return next();
+  }
+
+  const totalSlots =
+    update.totalSlots !== undefined
+      ? update.totalSlots
+      : docToUpdate.totalSlots;
+  const availableSlots =
+    update.availableSlots !== undefined
+      ? update.availableSlots
+      : docToUpdate.availableSlots;
+
+  if (availableSlots > totalSlots) {
+    return next(new Error("Available slots cannot exceed total slots"));
+  }
+
+  // Auto-update isAvailable based on availableSlots
+  if (update.availableSlots !== undefined || update.totalSlots !== undefined) {
+    this.setUpdate({ ...update, isAvailable: availableSlots > 0 });
+  }
+
   next();
 });
 
