@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Parking } from "@/types/parking";
-import { Loader2, Save, Plus } from "lucide-react";
+import { Loader2, Save, Plus, Minus } from "lucide-react";
 
 const parkingSchema = z.object({
   parkingName: z.string().min(1, "Parking name is required").max(100),
@@ -142,7 +142,27 @@ export function ParkingFormDialog({
                   <FormItem>
                     <FormLabel>Total Slots</FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} {...field} />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-10 w-10 shrink-0"
+                          onClick={() => field.onChange(Math.max(1, Number(field.value) - 1))}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <Input type="number" min={1} {...field} className="text-center" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-10 w-10 shrink-0"
+                          onClick={() => field.onChange(Number(field.value) + 1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -156,7 +176,27 @@ export function ParkingFormDialog({
                   <FormItem>
                     <FormLabel>Available Slots</FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} {...field} />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-10 w-10 shrink-0"
+                          onClick={() => field.onChange(Math.max(0, Number(field.value) - 1))}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <Input type="number" min={0} {...field} className="text-center" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-10 w-10 shrink-0"
+                          onClick={() => field.onChange(Number(field.value) + 1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
