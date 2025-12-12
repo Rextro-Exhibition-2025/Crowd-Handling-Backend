@@ -175,7 +175,7 @@ paths:
       tags:
         - Parking
       summary: Update parking
-      description: Update all details of a specific parking location
+      description: Update parking details (parking name cannot be changed)
       operationId: updateParking
       parameters:
         - $ref: "#/components/parameters/ParkingId"
@@ -184,12 +184,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ParkingInput"
+              $ref: "#/components/schemas/ParkingUpdateInput"
             examples:
               example1:
                 summary: Update parking details
                 value:
-                  parkingName: "Main Street Parking - Updated"
                   totalSlots: 150
                   availableSlots: 120
       responses:
@@ -366,6 +365,24 @@ components:
           minimum: 0
           description: Number of available parking slots (must not exceed totalSlots)
           example: 75
+
+    ParkingUpdateInput:
+      type: object
+      required:
+        - totalSlots
+        - availableSlots
+      properties:
+        totalSlots:
+          type: integer
+          minimum: 0
+          description: Total number of parking slots
+          example: 150
+        availableSlots:
+          type: integer
+          minimum: 0
+          description: Number of available parking slots (must not exceed totalSlots)
+          example: 120
+      description: Schema for updating parking (parkingName cannot be updated)
 
     AvailabilityUpdate:
       type: object

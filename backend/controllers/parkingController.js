@@ -93,7 +93,10 @@ exports.createParking = async (req, res) => {
 // @route   PUT /api/parkings/:id
 exports.updateParking = async (req, res) => {
   try {
-    const parking = await Parking.findByIdAndUpdate(req.params.id, req.body, {
+    // Remove parkingName from the update data to prevent name changes
+    const { parkingName, ...updateData } = req.body;
+
+    const parking = await Parking.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });
